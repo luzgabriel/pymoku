@@ -1,15 +1,4 @@
-"""
-game.py
-
-Implementations of gomoku game, a 15x15 board game which goal is to reach 5 pieces in a row
-https://en.wikipedia.org/wiki/Gomoku
-
-Authors:
-		- @gablanger
-		-
-
-Date: 08/19/2017
-"""
+# -*- coding: utf-8 -*-
 
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
@@ -121,7 +110,7 @@ def get_diagonal_sequences(state):
 
 
 """
-TO-DO: TEM QUE RETORNAR A QUANTIDADE DE ABERTURAS DE CADA DUPLA, TRIPLA, QUADRUPLA PRA USAR NO CALCULO DA HEURISTICA
+TO-DO: TEM QUE RETORNAR A QUANTIDADE DE ABERTURAS DE CADA DUPLA, TRIPLA, QUÁDRUPLA PRA USAR NO CALCULO DA HEURISTICA
 
 ==== Heuristica ====
 	Dupla 		= +1
