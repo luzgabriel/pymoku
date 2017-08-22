@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 game.py
 
@@ -10,6 +11,9 @@ Authors:
 
 Date: 08/19/2017
 """
+=======
+# -*- coding: utf-8 -*-
+>>>>>>> 0cc47c061f559c7852479900fbdb96f103f0ad35
 
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
@@ -129,7 +133,7 @@ def get_diagonal_sequences(state):
 
 
 """
-TO-DO: TEM QUE RETORNAR A QUANTIDADE DE ABERTURAS DE CADA DUPLA, TRIPLA, QUADRUPLA PRA USAR NO CALCULO DA HEURISTICA
+TO-DO: TEM QUE RETORNAR A QUANTIDADE DE ABERTURAS DE CADA DUPLA, TRIPLA, QUÁDRUPLA PRA USAR NO CALCULO DA HEURISTICA
 
 ==== Heuristica ====
 	Dupla 		= +1
