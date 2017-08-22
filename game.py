@@ -110,11 +110,40 @@ def get_vertical_sequences(state):
 	return sequences
 
 
+# returns an array of sequences
+def get_backward_diagonal_sequences(state):
+		sequences = []
+		tmp_seq = []
+		lastItem = None
+		# for col in range(15):
+		for row in range(15):
+			col=row
+			item = state[row][col]
+			if item != EMPTY:
+				if row > 0 and col > 0:
+					lastItem = state[row-1][col-1]
+					if item == lastItem:
+						if tmp_seq == []:
+							tmp_seq.append([row - 1, col-1])
+						tmp_seq.append([row, col])
+						# if there's no more columns to analyse in this row, flush to sequences array
+						if col == 14:
+							sequences.append([item, tmp_seq, len(tmp_seq)])
+							tmp_seq = []
+					elif len(tmp_seq) > 1:
+						sequences.append([item, tmp_seq, len(tmp_seq)])
+						tmp_seq = []
+
+			elif len(tmp_seq) > 1:
+				sequences.append([lastItem, tmp_seq, len(tmp_seq)])
+				tmp_seq = []
+		return sequences
+
 
 # TO-DO
 # returns an array of sequences
-def get_diagonal_sequences(state):
-	pass
+def get_forward_diagonal_sequences(state):
+		pass
 
 
 
@@ -152,6 +181,8 @@ def start_game_pvp():
 		for sequence in get_horizontal_sequences(state):
 			all_sequences.append(sequence)
 		for sequence in get_vertical_sequences(state):
+			all_sequences.append(sequence)
+		for sequence in get_backward_diagonal_sequences(state):
 			all_sequences.append(sequence)
 
 		for sequence in all_sequences:
