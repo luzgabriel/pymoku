@@ -6,7 +6,7 @@ https://en.wikipedia.org/wiki/Gomoku
 
 Authors:
 		- @gablanger
-		-
+		- @luzgabriel
 
 Date: 08/19/2017
 """
@@ -24,11 +24,19 @@ def get_initial_state():
 
 # prints a state of the board
 def print_state(state):
+
+	s = " "
+	for j in range(15):
+		s += "  " + str(j).zfill(2)
+	print s
+	i=0;
 	for row in state:
 		string = ""
 		for column in row:
 			string += column + " "
-		print string
+		print str(i).zfill(2) + " " + string
+		i+=1
+		# print string
 
 # returns empty positions
 def get_available_positions(state):
@@ -232,4 +240,3 @@ if __name__ == "__main__" :
 			print "Ate mais!"
 		else:
 			print "Opcao invalida!"
-gam
