@@ -1,19 +1,5 @@
-<<<<<<< HEAD
-"""
-game.py
-
-Implementations of gomoku game, a 15x15 board game which goal is to reach 5 pieces in a row
-https://en.wikipedia.org/wiki/Gomoku
-
-Authors:
-		- @gablanger
-		- @luzgabriel
-
-Date: 08/19/2017
-"""
-=======
 # -*- coding: utf-8 -*-
->>>>>>> 0cc47c061f559c7852479900fbdb96f103f0ad35
+
 
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
