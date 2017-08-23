@@ -2,7 +2,6 @@
 
 import numpy as np
 
-
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
@@ -147,70 +146,28 @@ def get_all_diagonals(state):
 	diags.extend(a.diagonal(i) for i in range(a.shape[1]-1,-a.shape[0],-1))
 
 	diagonals = [n.tolist() for n in diags]
-	print diagonals
+	# print diagonals
 	return diagonals
 
 # returns an array of sequences
-def get_backward_diagonal_sequences(state):
+def get_diagonal_sequences(state):
+	diagonals = get_all_diagonals(state)
 	sequences = []
 	tmp_seq = []
 	lastItem = None
-	# for col in range(15):
-	for row in range(15):
-		for col in range(15):
-			item = state[row][col]
+	for diagonal in diagonals:
+		for i, item in enumerate(diagonal):
 			if item != EMPTY:
-				if row > 0 and col > 0:
-					lastItem = state[row-1][col-1]
+				if i > 0:
+					lastItem = diagonal[i-1]
 					if item == lastItem:
-						if tmp_seq == []:
-							tmp_seq.append([row - 1, col-1])
-						tmp_seq.append([row, col])
-						# if there's no more columns to analyse in this row, flush to sequences array
-						if col == 14:
-							sequences.append([item, tmp_seq, len(tmp_seq)])
-							tmp_seq = []
-					elif len(tmp_seq) > 1:
-						sequences.append([item, tmp_seq, len(tmp_seq)])
+						if len(tmp_seq) == 0:
+							tmp_seq.append(lastItem)
+						tmp_seq.append(item)
+					elif len(tmp_seq) > 0:
+						sequences.append([tmp_seq[0], [], len(tmp_seq)])
 						tmp_seq = []
-
-			elif len(tmp_seq) > 1:
-				sequences.append([lastItem, tmp_seq, len(tmp_seq)])
-				tmp_seq = []
 	return sequences
-
-
-# TO-DO
-# returns an array of sequences
-def get_forward_diagonal_sequences(state):
-	sequences = []
-	tmp_seq = []
-	lastItem = None
-	# for col in range(15):
-	for row in range(15):
-		for col in range(15):
-			item = state[row][col]
-			if item != EMPTY:
-				if row > 0 and col < 14:
-					lastItem = state[row-1][col+1]
-					if item == lastItem:
-						if tmp_seq == []:
-							tmp_seq.append([row - 1, col+1])
-						tmp_seq.append([row, col])
-						# if there's no more columns to analyse in this row, flush to sequences array
-						if col == 14:
-							sequences.append([item, tmp_seq, len(tmp_seq)])
-							tmp_seq = []
-					elif len(tmp_seq) > 1:
-						sequences.append([item, tmp_seq, len(tmp_seq)])
-						tmp_seq = []
-
-			elif len(tmp_seq) > 1:
-				sequences.append([lastItem, tmp_seq, len(tmp_seq)])
-				tmp_seq = []
-	return sequences
-
-
 
 """
 TO-DO: TEM QUE RETORNAR A QUANTIDADE DE ABERTURAS DE CADA DUPLA, TRIPLA, QUÁDRUPLA PRA USAR NO CALCULO DA HEURISTICA
@@ -247,9 +204,7 @@ def start_game_pvp():
 			all_sequences.append(sequence)
 		for sequence in get_vertical_sequences(state):
 			all_sequences.append(sequence)
-		for sequence in get_backward_diagonal_sequences(state):
-			all_sequences.append(sequence)
-		for sequence in get_forward_diagonal_sequences(state):
+		for sequence in get_diagonal_sequences(state):
 			all_sequences.append(sequence)
 
 
