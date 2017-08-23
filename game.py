@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
+
 
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
@@ -110,14 +112,52 @@ def get_vertical_sequences(state):
 	return sequences
 
 
+def get_all_diagonals(state):
+
+	# Alter dimensions as needed
+	x,y = 15,15
+
+	# create a default array of specified dimensions
+	a = np.array(state)
+	# a.diagonal returns the top-left-to-lower-right diagonal "i"
+	# according to this diagram:
+	#
+	#  0  1  2  3  4 ...
+	# -1  0  1  2  3
+	# -2 -1  0  1  2
+	# -3 -2 -1  0  1
+	#  :
+	#
+	# You wanted lower-left-to-upper-right and upper-left-to-lower-right diagonals.
+	#
+	# The syntax a[slice,slice] returns a new array with elements from the sliced ranges,
+	# where "slice" is Python's [start[:stop[:step]] format.
+
+	# "::-1" returns the rows in reverse. ":" returns the columns as is,
+	# effectively vertically mirroring the original array so the wanted diagonals are
+	# lower-right-to-uppper-left.
+	#
+	# Then a list comprehension is used to collect all the diagonals.  The range
+	# is -x+1 to y (exclusive of y), so for a matrix like the example above
+	# (x,y) = (4,5) = -3 to 4.
+	diags = [a[::-1,:].diagonal(i) for i in range(-a.shape[0]+1,a.shape[1])]
+
+	# Now back to the original array to get the upper-left-to-lower-right diagonals,
+	# starting from the right, so the range needed for shape (x,y) was y-1 to -x+1 descending.
+	diags.extend(a.diagonal(i) for i in range(a.shape[1]-1,-a.shape[0],-1))
+
+	diagonals = [n.tolist() for n in diags]
+	print diagonals
+	return diagonals
+
 # returns an array of sequences
 def get_backward_diagonal_sequences(state):
-		sequences = []
-		tmp_seq = []
-		lastItem = None
-		# for col in range(15):
-		for row in range(15):
-			col=row
+	sequences = []
+	tmp_seq = []
+	lastItem = None
+	# for col in range(15):
+	for row in range(15):
+		for col in range(15):
 			item = state[row][col]
 			if item != EMPTY:
 				if row > 0 and col > 0:
@@ -137,13 +177,38 @@ def get_backward_diagonal_sequences(state):
 			elif len(tmp_seq) > 1:
 				sequences.append([lastItem, tmp_seq, len(tmp_seq)])
 				tmp_seq = []
-		return sequences
+	return sequences
 
 
 # TO-DO
 # returns an array of sequences
 def get_forward_diagonal_sequences(state):
-		pass
+	sequences = []
+	tmp_seq = []
+	lastItem = None
+	# for col in range(15):
+	for row in range(15):
+		for col in range(15):
+			item = state[row][col]
+			if item != EMPTY:
+				if row > 0 and col < 14:
+					lastItem = state[row-1][col+1]
+					if item == lastItem:
+						if tmp_seq == []:
+							tmp_seq.append([row - 1, col+1])
+						tmp_seq.append([row, col])
+						# if there's no more columns to analyse in this row, flush to sequences array
+						if col == 14:
+							sequences.append([item, tmp_seq, len(tmp_seq)])
+							tmp_seq = []
+					elif len(tmp_seq) > 1:
+						sequences.append([item, tmp_seq, len(tmp_seq)])
+						tmp_seq = []
+
+			elif len(tmp_seq) > 1:
+				sequences.append([lastItem, tmp_seq, len(tmp_seq)])
+				tmp_seq = []
+	return sequences
 
 
 
@@ -184,6 +249,10 @@ def start_game_pvp():
 			all_sequences.append(sequence)
 		for sequence in get_backward_diagonal_sequences(state):
 			all_sequences.append(sequence)
+		for sequence in get_forward_diagonal_sequences(state):
+			all_sequences.append(sequence)
+
+
 
 		for sequence in all_sequences:
 			print "seq" + str(sequence)
@@ -204,6 +273,7 @@ def start_game_pvp():
 			print "Game ended"
 			break
 
+		get_all_diagonals(state)
 		print_state(state)
 		move = False
 		while move == False:
