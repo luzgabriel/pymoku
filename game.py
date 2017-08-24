@@ -149,24 +149,47 @@ def get_all_diagonals(state):
 	# print diagonals
 	return diagonals
 
+
+# TODO Improve conditional state logic, it is working but it is not optimal!
 # returns an array of sequences
 def get_diagonal_sequences(state):
-	diagonals = get_all_diagonals(state)
 	sequences = []
 	tmp_seq = []
-	lastItem = None
+	tmp_opening = 0
+	last_item = None
+	diagonals = get_all_diagonals(state)
 	for diagonal in diagonals:
+		tmp_seq = []
+		tmp_opening = 0
 		for i, item in enumerate(diagonal):
-			if item != EMPTY:
-				if i > 0:
-					lastItem = diagonal[i-1]
-					if item == lastItem:
-						if len(tmp_seq) == 0:
-							tmp_seq.append(lastItem)
-						tmp_seq.append(item)
-					elif len(tmp_seq) > 0:
-						sequences.append([tmp_seq[0], [], len(tmp_seq)])
-						tmp_seq = []
+			if i > 0:
+				last_item = diagonal[i-1]
+
+				if last_item == EMPTY and item != EMPTY:
+					tmp_opening = 1
+					tmp_seq.append(item)
+
+				if last_item != EMPTY and item == EMPTY:
+					if(len(tmp_seq) > 1):
+						sequences.append([tmp_seq[0], tmp_opening+1, len(tmp_seq)])
+					tmp_seq = []
+					tmp_opening = 0
+
+				if last_item != item and last_item != EMPTY and item != EMPTY:
+					if(len(tmp_seq) > 1):
+						sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
+					tmp_seq = []
+					tmp_seq.append(item)
+					tmp_opening = 0
+
+				if last_item == item and last_item != EMPTY and item != EMPTY:
+					if(len(tmp_seq) < 1):
+						tmp_seq.append(last_item)
+					tmp_seq.append(item)
+
+		if len(tmp_seq) > 1:
+			sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
+
 	return sequences
 
 """
@@ -210,16 +233,16 @@ def start_game_pvp():
 
 
 		for sequence in all_sequences:
-			print "seq" + str(sequence)
+			# print "seq" + str(sequence)
 			if len(sequence) > 0:
 				if sequence[2] == 2:
-					print "Dupla de " + str(sequence[0])
+					print "Dupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
 				elif sequence[2] == 3:
-					print "Tripla de " + str(sequence[0])
+					print "Tripla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
 				elif sequence[2] == 4:
-					print "Quadrupla de " + str(sequence[0])
+					print "Quadrupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
 				elif sequence[2] == 5:
-					print "Quintupla de " + str(sequence[0])
+					print "Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
 					win = True
 					winner = sequence[0]
 					break
