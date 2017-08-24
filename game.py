@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import os
+import signal
+import sys
+
+def signal_handler(signal, frame):
+        print('\nSee you soon!')
+        sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
@@ -218,6 +227,10 @@ def start_game_pvp():
 	winner = None
 
 	while win == False:
+		os.system('tput reset')
+		print " === === === === === ===  === === === === === === === === ==="
+		print " === === === === === ===  PYMOKU  === === === === === === ==="
+		print " === === === === === ===  === === === === === === === === ==="
 		if len(get_available_positions(state)) == 0:
 			print "Nao ha mais posicoes disponiveis, empate."
 			break
@@ -231,7 +244,7 @@ def start_game_pvp():
 			all_sequences.append(sequence)
 
 
-
+		print_state(state)
 		for sequence in all_sequences:
 			# print "seq" + str(sequence)
 			if len(sequence) > 0:
@@ -251,8 +264,6 @@ def start_game_pvp():
 			print "Game ended"
 			break
 
-		get_all_diagonals(state)
-		print_state(state)
 		move = False
 		while move == False:
 			print "Jogador " + turn + ", e a sua vez: "
@@ -295,7 +306,7 @@ def print_menu():
 
 
 if __name__ == "__main__" :
-
+	os.system('tput reset')
 	print_menu()
 	exit = False
 	while exit == False:
