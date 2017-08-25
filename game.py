@@ -63,137 +63,68 @@ def make_move(state, pos, user):
 		return True
 	return False
 
+#returns sequences in an array
+def get_sequences_in_array(array):
+	sequences = []
+	tmp_seq = []
+	tmp_opening = 0
+	for i, item in enumerate(array):
+		if i > 0:
+			last_item = array[i-1]
+			if item != EMPTY:
+				if last_item != item:
+					if last_item == EMPTY:
+						tmp_opening = 1
+						tmp_seq.append(item)
+					else:
+						if(len(tmp_seq) > 1):
+							sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
+						tmp_seq = []
+						tmp_opening = 0
+				else:
+					if(len(tmp_seq) < 1):
+						tmp_seq.append(last_item)
+					tmp_seq.append(item)
+			elif last_item != item:
+				if len(tmp_seq) > 1:
+					sequences.append([tmp_seq[0], tmp_opening+1, len(tmp_seq)])
+				tmp_seq = []
+				tmp_opening = 0
+	if len(tmp_seq) > 1:
+		sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
+	return sequences
+
 # returns an array of sequences
 def get_horizontal_sequences(state):
 	sequences = []
-	tmp_seq = []
-	last_item = None
+	a = np.array(state)
 	for row in range(15):
-		for col in range(15):
-			item = state[row][col]
-			if item != EMPTY:
-				if col > 0:
-					last_item = state[row][col - 1]
-					if item == last_item:
-						if tmp_seq == []:
-							tmp_seq.append([row, col - 1])
-						tmp_seq.append([row, col])
-						# if there's no more columns to analyse in this row, flush to sequences array
-						if col == 14:
-							sequences.append([item, tmp_seq, len(tmp_seq)])
-							tmp_seq = []
-					elif len(tmp_seq) > 1:
-						sequences.append([item, tmp_seq, len(tmp_seq)])
-						tmp_seq = []
-			elif len(tmp_seq) > 1:
-				sequences.append([last_item, tmp_seq, len(tmp_seq)])
-				tmp_seq = []
+		sequences += get_sequences_in_array(a[row,:])
 	return sequences
-
 
 # returns an array of sequences
 def get_vertical_sequences(state):
+	a = np.array(state)
 	sequences = []
-	tmp_seq = []
-	tmp_opening = 0;
-	last_item = None
 	for col in range(15):
-		for row in range(15):
-			item = state[row][col]
-			if item != EMPTY:
-				if row > 0:
-					last_item = state[row-1][col]
-					if item == last_item:
-						if tmp_seq == []:
-							tmp_seq.append([row - 1, col])
-						tmp_seq.append([row, col])
-						# if there's no more columns to analyse in this row, flush to sequences array
-						if col == 14:
-							sequences.append([item, tmp_seq, len(tmp_seq)])
-							tmp_seq = []
-					elif len(tmp_seq) > 1:
-						sequences.append([item, tmp_seq, len(tmp_seq)])
-						tmp_seq = []
-
-			elif len(tmp_seq) > 1:
-				sequences.append([last_item, tmp_seq, len(tmp_seq)])
-				tmp_seq = []
+		sequences += get_sequences_in_array(a[:,col])
 	return sequences
 
-
+#returns all diagonals in state
 def get_all_diagonals(state):
-
-	# Alter dimensions as needed
 	x,y = 15,15
-
-	# create a default array of specified dimensions
 	a = np.array(state)
-	# a.diagonal returns the top-left-to-lower-right diagonal "i"
-	# according to this diagram:
-	#
-	#  0  1  2  3  4 ...
-	# -1  0  1  2  3
-	# -2 -1  0  1  2
-	# -3 -2 -1  0  1
-	#  :
-	#
-	# You wanted lower-left-to-upper-right and upper-left-to-lower-right diagonals.
-	#
-	# The syntax a[slice,slice] returns a new array with elements from the sliced ranges,
-	# where "slice" is Python's [start[:stop[:step]] format.
-
-	# "::-1" returns the rows in reverse. ":" returns the columns as is,
-	# effectively vertically mirroring the original array so the wanted diagonals are
-	# lower-right-to-uppper-left.
-	#
-	# Then a list comprehension is used to collect all the diagonals.  The range
-	# is -x+1 to y (exclusive of y), so for a matrix like the example above
-	# (x,y) = (4,5) = -3 to 4.
 	diags = [a[::-1,:].diagonal(i) for i in range(-a.shape[0]+1,a.shape[1])]
-
-	# Now back to the original array to get the upper-left-to-lower-right diagonals,
-	# starting from the right, so the range needed for shape (x,y) was y-1 to -x+1 descending.
 	diags.extend(a.diagonal(i) for i in range(a.shape[1]-1,-a.shape[0],-1))
-
 	diagonals = [n.tolist() for n in diags]
-	# print diagonals
 	return diagonals
 
 # returns an array of sequences
 def get_diagonal_sequences(state):
 	sequences = []
-	tmp_seq = []
-	tmp_opening = 0
-	last_item = None
 	diagonals = get_all_diagonals(state)
 	for diagonal in diagonals:
-		tmp_seq = []
-		tmp_opening = 0
-		for i, item in enumerate(diagonal):
-			if i > 0:
-				last_item = diagonal[i-1]
-				if item != EMPTY:
-					if last_item != item:
-						if last_item == EMPTY:
-							tmp_opening = 1
-							tmp_seq.append(item)
-						else:
-							if(len(tmp_seq) > 1):
-								sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
-							tmp_seq = []
-							tmp_opening = 0
-					else:
-						if(len(tmp_seq) < 1):
-							tmp_seq.append(last_item)
-						tmp_seq.append(item)
-				elif last_item != item:
-					if len(tmp_seq) > 1:
-						sequences.append([tmp_seq[0], tmp_opening+1, len(tmp_seq)])
-					tmp_seq = []
-					tmp_opening = 0
-		if len(tmp_seq) > 1:
-			sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
-
+		sequences += get_sequences_in_array(diagonal)
 	return sequences
 
 """
