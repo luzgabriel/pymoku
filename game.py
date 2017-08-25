@@ -67,14 +67,14 @@ def make_move(state, pos, user):
 def get_horizontal_sequences(state):
 	sequences = []
 	tmp_seq = []
-	lastItem = None
+	last_item = None
 	for row in range(15):
 		for col in range(15):
 			item = state[row][col]
 			if item != EMPTY:
 				if col > 0:
-					lastItem = state[row][col - 1]
-					if item == lastItem:
+					last_item = state[row][col - 1]
+					if item == last_item:
 						if tmp_seq == []:
 							tmp_seq.append([row, col - 1])
 						tmp_seq.append([row, col])
@@ -86,7 +86,7 @@ def get_horizontal_sequences(state):
 						sequences.append([item, tmp_seq, len(tmp_seq)])
 						tmp_seq = []
 			elif len(tmp_seq) > 1:
-				sequences.append([lastItem, tmp_seq, len(tmp_seq)])
+				sequences.append([last_item, tmp_seq, len(tmp_seq)])
 				tmp_seq = []
 	return sequences
 
@@ -95,14 +95,15 @@ def get_horizontal_sequences(state):
 def get_vertical_sequences(state):
 	sequences = []
 	tmp_seq = []
-	lastItem = None
+	tmp_opening = 0;
+	last_item = None
 	for col in range(15):
 		for row in range(15):
 			item = state[row][col]
 			if item != EMPTY:
 				if row > 0:
-					lastItem = state[row-1][col]
-					if item == lastItem:
+					last_item = state[row-1][col]
+					if item == last_item:
 						if tmp_seq == []:
 							tmp_seq.append([row - 1, col])
 						tmp_seq.append([row, col])
@@ -115,7 +116,7 @@ def get_vertical_sequences(state):
 						tmp_seq = []
 
 			elif len(tmp_seq) > 1:
-				sequences.append([lastItem, tmp_seq, len(tmp_seq)])
+				sequences.append([last_item, tmp_seq, len(tmp_seq)])
 				tmp_seq = []
 	return sequences
 
@@ -158,8 +159,6 @@ def get_all_diagonals(state):
 	# print diagonals
 	return diagonals
 
-
-# TODO Improve conditional state logic, it is working but it is not optimal!
 # returns an array of sequences
 def get_diagonal_sequences(state):
 	sequences = []
@@ -173,29 +172,25 @@ def get_diagonal_sequences(state):
 		for i, item in enumerate(diagonal):
 			if i > 0:
 				last_item = diagonal[i-1]
-
-				if last_item == EMPTY and item != EMPTY:
-					tmp_opening = 1
-					tmp_seq.append(item)
-
-				if last_item != EMPTY and item == EMPTY:
-					if(len(tmp_seq) > 1):
+				if item != EMPTY:
+					if last_item != item:
+						if last_item == EMPTY:
+							tmp_opening = 1
+							tmp_seq.append(item)
+						else:
+							if(len(tmp_seq) > 1):
+								sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
+							tmp_seq = []
+							tmp_opening = 0
+					else:
+						if(len(tmp_seq) < 1):
+							tmp_seq.append(last_item)
+						tmp_seq.append(item)
+				elif last_item != item:
+					if len(tmp_seq) > 1:
 						sequences.append([tmp_seq[0], tmp_opening+1, len(tmp_seq)])
 					tmp_seq = []
 					tmp_opening = 0
-
-				if last_item != item and last_item != EMPTY and item != EMPTY:
-					if(len(tmp_seq) > 1):
-						sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
-					tmp_seq = []
-					tmp_seq.append(item)
-					tmp_opening = 0
-
-				if last_item == item and last_item != EMPTY and item != EMPTY:
-					if(len(tmp_seq) < 1):
-						tmp_seq.append(last_item)
-					tmp_seq.append(item)
-
 		if len(tmp_seq) > 1:
 			sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
 
