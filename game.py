@@ -136,6 +136,116 @@ def get_sequence_score(length):
 	elif length == 5:
 		return 383056128
 
+#TODO
+def get_pc_move(state):
+	return get_available_positions(state)[0]
+
+def start_game_single_player():
+		print "Start game"
+		state = get_initial_state()
+		turn = PLAYER1
+
+		all_sequences = []
+		win = False
+		winner = None
+
+		while win == False:
+			print_header()
+			print_state(state)
+
+			if len(get_available_positions(state)) == 0:
+				print "No more available postions. It's a tie!"
+				break
+
+			all_sequences = []
+			for sequence in get_horizontal_sequences(state):
+				all_sequences.append(sequence)
+			for sequence in get_vertical_sequences(state):
+				all_sequences.append(sequence)
+			for sequence in get_diagonal_sequences(state):
+				all_sequences.append(sequence)
+
+			player1_score = 0
+			player2_score = 0
+			for sequence in all_sequences:
+				if len(sequence) > 0:
+					if sequence[2] == 2:
+						if sequence[0] == PLAYER1:
+							player1_score += get_sequence_score(2)*sequence[1]
+						else:
+							player2_score += get_sequence_score(2)*sequence[1]
+						if debug: print "Dupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+					elif sequence[2] == 3:
+						if sequence[0] == PLAYER1:
+							player1_score += get_sequence_score(3)*sequence[1]
+						else:
+							player2_score += get_sequence_score(3)*sequence[1]
+						if debug: print "Tripla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+					elif sequence[2] == 4:
+						if sequence[0] == PLAYER1:
+							player1_score += get_sequence_score(4)*sequence[1]
+						else:
+							player2_score += get_sequence_score(4)*sequence[1]
+						if debug: print "Quadrupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+					elif sequence[2] >= 5:
+						if sequence[0] == PLAYER1:
+							player1_score += get_sequence_score(5)*sequence[1]
+						else:
+							player2_score += get_sequence_score(5)*sequence[1]
+						if debug: print "Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+						win = True
+						winner = sequence[0]
+			if debug: print "SCORE<"+str(PLAYER1)+">: "+str(player1_score)+ "    SCORE<"+str(PLAYER2)+">: "+str(player2_score)
+			if win == True:
+				print "Game ended"
+				break
+
+			if turn == PLAYER1:
+				move = False
+				while move == False:
+					print "Player " + turn + "'s turn:"
+					error = False
+					try:
+						row = int(raw_input("row: "))
+						col = int(raw_input("col: "))
+						move = make_move(state, [row,col], turn)
+					except IndexError:
+						print "Please insert values between 0 and 14"
+						error = True
+					except ValueError:
+						print "Please insert values between 0 and 14"
+						error = True
+					if error == False and move == False:
+						print "Position is busy"
+			else:
+				make_move(state, get_pc_move(state), turn)
+
+			if turn == PLAYER1:
+				turn = PLAYER2
+			elif turn == PLAYER2:
+				turn = PLAYER1
+
+		if win:
+			print "\nPLAYER "+ str(winner) + " WINS"
+		print "Play again? (y/n)"
+		exit = False
+		while not exit:
+			user_input = raw_input("")
+			if (user_input == "y"):
+				start_game_pvp()
+			elif (user_input == "n"):
+				print_menu()
+			else:
+				print "Invalid option"
+
+def print_header():
+	os.system('tput reset')
+	if debug:
+		print " === === === === === ===  DEBUG === === === === === === === ==="
+	print " === === === === === ===  === === === === === === === === ==="
+	print " === === === === === ===  PYMOKU  === === === === === === ==="
+	print " === === === === === ===  === === === === === === === === ==="
+
 def start_game_pvp():
 	print "Start game"
 	state = get_initial_state()
@@ -146,12 +256,9 @@ def start_game_pvp():
 	winner = None
 
 	while win == False:
-		os.system('tput reset')
-		if debug:
-			print " === === === === === ===  DEBUG === === === === === === === ==="
-		print " === === === === === ===  === === === === === === === === ==="
-		print " === === === === === ===  PYMOKU  === === === === === === ==="
-		print " === === === === === ===  === === === === === === === === ==="
+		print_header()
+		print_state(state)
+
 		if len(get_available_positions(state)) == 0:
 			print "No more available postions. It's a tie!"
 			break
@@ -164,8 +271,6 @@ def start_game_pvp():
 		for sequence in get_diagonal_sequences(state):
 			all_sequences.append(sequence)
 
-
-		print_state(state)
 		player1_score = 0
 		player2_score = 0
 		for sequence in all_sequences:
@@ -218,7 +323,6 @@ def start_game_pvp():
 			if error == False and move == False:
 				print "Position is busy"
 
-
 		if turn == PLAYER1:
 			turn = PLAYER2
 		elif turn == PLAYER2:
@@ -256,7 +360,7 @@ def print_menu():
 		if user_input == "1":
 			start_game_pvp()
 		elif user_input == "2":
-			"Coming soon!"
+			start_game_single_player()
 		elif user_input == "3":
 			exit = True
 			print "See you soon!"
