@@ -14,6 +14,7 @@ signal.signal(signal.SIGINT, signal_handler)
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
+debug = False
 
 # returns the inicial state of the game, with all the board empty
 def get_initial_state():
@@ -174,14 +175,16 @@ def start_game_pvp():
 		for sequence in all_sequences:
 			# print "seq" + str(sequence)
 			if len(sequence) > 0:
-				if sequence[2] == 2:
-					print "Dupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
-				elif sequence[2] == 3:
-					print "Tripla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
-				elif sequence[2] == 4:
-					print "Quadrupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
-				elif sequence[2] == 5:
-					print "Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+				if debug:
+					if sequence[2] == 2:
+						print "Dupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+					elif sequence[2] == 3:
+						print "Tripla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+					elif sequence[2] == 4:
+						print "Quadrupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+					elif sequence[2] == 5:
+						print "Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+				if sequence[2] == 5:
 					win = True
 					winner = sequence[0]
 					break
@@ -233,6 +236,9 @@ def print_menu():
 
 if __name__ == "__main__" :
 	os.system('tput reset')
+	if len(sys.argv) > 1:
+		if sys.argv[1] == 'debug':
+			debug = True
 	print_menu()
 	exit = False
 	while exit == False:
