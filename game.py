@@ -5,16 +5,16 @@ import os
 import signal
 import sys
 
-def signal_handler(signal, frame):
-        print('\nSee you soon!')
-        sys.exit(0)
-
-signal.signal(signal.SIGINT, signal_handler)
-
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
 debug = False
+
+#^C handler
+def signal_handler(signal, frame):
+	print('\nSee you soon!')
+	sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
 
 # returns the inicial state of the game, with all the board empty
 def get_initial_state():
@@ -25,7 +25,6 @@ def get_initial_state():
 
 # prints a state of the board
 def print_state(state):
-
 	s = " "
 	for j in range(15):
 		s += "  " + str(j).zfill(2)
@@ -37,7 +36,6 @@ def print_state(state):
 			string += column + " "
 		print str(i).zfill(2) + " " + string
 		i+=1
-		# print string
 
 # returns empty positions
 def get_available_positions(state):
@@ -53,7 +51,6 @@ def is_position_available(state, pos):
 	pos_x = pos[0]
 	pos_y = pos[1]
 	return state[pos_x][pos_y] == EMPTY
-
 
 # user = PLAYER1 or PLAYER2
 def make_move(state, pos, user):
@@ -111,38 +108,33 @@ def get_vertical_sequences(state):
 		sequences += get_sequences_in_array(a[:,col])
 	return sequences
 
-#returns all diagonals in state
-def get_all_diagonals(state):
+# returns an array of sequences
+def get_diagonal_sequences(state):
+	sequences = []
 	x,y = 15,15
 	a = np.array(state)
 	diags = [a[::-1,:].diagonal(i) for i in range(-a.shape[0]+1,a.shape[1])]
 	diags.extend(a.diagonal(i) for i in range(a.shape[1]-1,-a.shape[0],-1))
 	diagonals = [n.tolist() for n in diags]
-	return diagonals
-
-# returns an array of sequences
-def get_diagonal_sequences(state):
-	sequences = []
-	diagonals = get_all_diagonals(state)
 	for diagonal in diagonals:
 		sequences += get_sequences_in_array(diagonal)
 	return sequences
 
-"""
-TO-DO: TEM QUE RETORNAR A QUANTIDADE DE ABERTURAS DE CADA DUPLA, TRIPLA, QUÁDRUPLA PRA USAR NO CALCULO DA HEURISTICA
-
-==== Heuristica ====
-	Dupla 		= +1
-	Tripla 		= +812
-	Quadrupla 	= +591136
-	Quintupla 	= +383056128
-"""
-
-# TO-DO
+# TODO
 # returns the score for the current state (using heuristics)
 def get_score(state):
 	pass
 
+# returns score given the length of a sequence
+def get_sequence_score(length):
+	if length == 2:
+		return 1
+	elif length == 3:
+		return 812
+	elif length == 4:
+		return 591136
+	elif length == 5:
+		return 383056128
 
 def start_game_pvp():
 	print "Start game"
@@ -155,11 +147,13 @@ def start_game_pvp():
 
 	while win == False:
 		os.system('tput reset')
+		if debug:
+			print " === === === === === ===  DEBUG === === === === === === === ==="
 		print " === === === === === ===  === === === === === === === === ==="
 		print " === === === === === ===  PYMOKU  === === === === === === ==="
 		print " === === === === === ===  === === === === === === === === ==="
 		if len(get_available_positions(state)) == 0:
-			print "Nao ha mais posicoes disponiveis, empate."
+			print "No more available postions. It's a tie!"
 			break
 
 		all_sequences = []
@@ -172,43 +166,57 @@ def start_game_pvp():
 
 
 		print_state(state)
+		player1_score = 0
+		player2_score = 0
 		for sequence in all_sequences:
-			# print "seq" + str(sequence)
 			if len(sequence) > 0:
-				if debug:
-					if sequence[2] == 2:
-						print "Dupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
-					elif sequence[2] == 3:
-						print "Tripla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
-					elif sequence[2] == 4:
-						print "Quadrupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
-					elif sequence[2] == 5:
-						print "Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
-				if sequence[2] == 5:
+				if sequence[2] == 2:
+					if sequence[0] == PLAYER1:
+						player1_score += get_sequence_score(2)*sequence[1]
+					else:
+						player2_score += get_sequence_score(2)*sequence[1]
+					if debug: print "Dupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+				elif sequence[2] == 3:
+					if sequence[0] == PLAYER1:
+						player1_score += get_sequence_score(3)*sequence[1]
+					else:
+						player2_score += get_sequence_score(3)*sequence[1]
+					if debug: print "Tripla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+				elif sequence[2] == 4:
+					if sequence[0] == PLAYER1:
+						player1_score += get_sequence_score(4)*sequence[1]
+					else:
+						player2_score += get_sequence_score(4)*sequence[1]
+					if debug: print "Quadrupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
+				elif sequence[2] >= 5:
+					if sequence[0] == PLAYER1:
+						player1_score += get_sequence_score(5)*sequence[1]
+					else:
+						player2_score += get_sequence_score(5)*sequence[1]
+					if debug: print "Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)"
 					win = True
 					winner = sequence[0]
-					break
-
+		if debug: print "SCORE<"+str(PLAYER1)+">: "+str(player1_score)+ "    SCORE<"+str(PLAYER2)+">: "+str(player2_score)
 		if win == True:
 			print "Game ended"
 			break
 
 		move = False
 		while move == False:
-			print "Jogador " + turn + ", e a sua vez: "
+			print "Player " + turn + "'s turn:"
 			error = False
 			try:
-				row = int(raw_input("linha: "))
-				col = int(raw_input("coluna: "))
+				row = int(raw_input("row: "))
+				col = int(raw_input("col: "))
 				move = make_move(state, [row,col], turn)
 			except IndexError:
-				print "Por favor, insira valores entre 0 e 14"
+				print "Please insert values between 0 and 14"
 				error = True
 			except ValueError:
-				print "Por favor, insira valores entre 0 e 14"
+				print "Please insert values between 0 and 14"
 				error = True
 			if error == False and move == False:
-				print "Posicao atualmente ocupada, escolha outra"
+				print "Position is busy"
 
 
 		if turn == PLAYER1:
@@ -216,39 +224,48 @@ def start_game_pvp():
 		elif turn == PLAYER2:
 			turn = PLAYER1
 
-	if win == True:
-		print "\nThe Winner is player"+ str(winner)
-		print_menu()
-
+	if win:
+		print "\nPLAYER "+ str(winner) + " WINS"
+	print "Play again? (y/n)"
+	exit = False
+	while not exit:
+		user_input = raw_input("")
+		if (user_input == "y"):
+			start_game_pvp()
+		elif (user_input == "n"):
+			print_menu()
+		else:
+			print "Invalid option"
 
 def print_menu():
+	os.system('tput reset')
+	if debug:
+		print "=== === ===  DEBUG  === === === ==="
 	print "=== === === === === === === === ==="
-	print "=== === === GOMOKU GAME === === ==="
+	print "=== === ===   PYMOKU   === === ==="
 	print "=== === === === === === === === ==="
 	print "===		MENU		==="
 	print "=== === === === === === === === ==="
-	#print "=== MENU:	       		==="
 	print "=== 1. Player vs Player 	==="
 	print "=== 2. Player vs Computer 	==="
 	print "=== 3. Exit Game		==="
 	print "=== === === === === === === === ==="
-
+	exit = False
+	while not exit:
+		user_input = raw_input("=== Insert option: ")
+		if user_input == "1":
+			start_game_pvp()
+		elif user_input == "2":
+			"Coming soon!"
+		elif user_input == "3":
+			exit = True
+			print "See you soon!"
+			sys.exit(0)
+		else:
+			print "Invalid option"
 
 if __name__ == "__main__" :
-	os.system('tput reset')
 	if len(sys.argv) > 1:
 		if sys.argv[1] == 'debug':
 			debug = True
 	print_menu()
-	exit = False
-	while exit == False:
-		user_input = raw_input("=== Insira: ")
-		if user_input == "1":
-			start_game_pvp()
-		elif user_input == "2":
-			"Em breve este recurso estara disponivel"
-		elif user_input == "3":
-			exit = True
-			print "Ate mais!"
-		else:
-			print "Opcao invalida!"
