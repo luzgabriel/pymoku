@@ -4,11 +4,13 @@ import numpy as np
 import os
 import signal
 import sys
+import copy
 
 EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
 debug = False
+MAX_ROUNDS = 2
 
 #^C handler
 def signal_handler(signal, frame):
@@ -135,17 +137,100 @@ def get_sequence_score(length):
 	elif length == 5:
 		return 383056128
 
-def alpha_beta(player, state, alpha, beta):
+
+def get_heuristic(state, player):
+	all_sequences = []
+	for sequence in get_horizontal_sequences(state):
+		all_sequences.append(sequence)
+	for sequence in get_vertical_sequences(state):
+		all_sequences.append(sequence)
+	for sequence in get_diagonal_sequences(state):
+		all_sequences.append(sequence)
+
+	player1_score = 0
+	player2_score = 0
+	for sequence in all_sequences:
+		if len(sequence) > 0:
+			if sequence[2] == 2:
+				if sequence[0] == PLAYER1:
+					player1_score += get_sequence_score(2)*sequence[1]
+				else:
+					player2_score += get_sequence_score(2)*sequence[1]
+
+			elif sequence[2] == 3:
+				if sequence[0] == PLAYER1:
+					player1_score += get_sequence_score(3)*sequence[1]
+				else:
+					player2_score += get_sequence_score(3)*sequence[1]
+
+			elif sequence[2] == 4:
+				if sequence[0] == PLAYER1:
+					player1_score += get_sequence_score(4)*sequence[1]
+				else:
+					player2_score += get_sequence_score(4)*sequence[1]
+
+			elif sequence[2] >= 5:
+				if sequence[0] == PLAYER1:
+					player1_score += get_sequence_score(5)*sequence[1]
+				else:
+					player2_score += get_sequence_score(5)*sequence[1]
+
+	if (player == PLAYER1):
+		return ((player1_score - player2_score))
+	else:
+		return ((player2_score - player1_score))
+
+def is_there_a_winner(state):
+
+	all_sequences = []
+	for sequence in get_horizontal_sequences(state):
+		all_sequences.append(sequence)
+	for sequence in get_vertical_sequences(state):
+		all_sequences.append(sequence)
+	for sequence in get_diagonal_sequences(state):
+		all_sequences.append(sequence)
+
+	player1_score = 0
+	player2_score = 0
+	for sequence in all_sequences:
+		if len(sequence) > 0:
+			if sequence[2] >= 5:
+				return True
+
+	return False
+
+def alpha_beta(player, state, alpha, beta, rounds):
 	possible_moves = get_available_positions(state)
-	# if(player == PLAYER2):
+	rounds += 1
+	winner = is_there_a_winner(state)
+	if(winner or len(possible_moves) == 0 or rounds > MAX_ROUNDS):
+		return get_heuristic(state,player)
 
-
+	if(player == PLAYER2):
+		for move in possible_moves:
+			tmp_state = [copy.copy(element) for element in state]
+			make_move(tmp_state, move, player)
+			score = alpha_beta(PLAYER1, tmp_state, alpha, beta, rounds)
+			if score > alpha:
+				alpha = score
+			if alpha >= beta:
+				return alpha
+		return alpha
+	else:
+		for move in possible_moves:
+			tmp_state = [copy.copy(element) for element in state]
+			make_move(tmp_state, move, player)
+			score = alpha_beta(PLAYER2, tmp_state, alpha,beta, rounds)
+			if score < beta:
+				beta = score
+			if alpha >= beta:
+				return beta
+		return beta
 
 #TODO
 def get_pc_move(state):
-
-
-
+	tmp = alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0)
+	print "best heuristic move = " + str(tmp)
 	return get_available_positions(state)[0]
 
 def start_game_single_player():
@@ -235,21 +320,23 @@ def start_game_single_player():
 
 		if win:
 			print("\nPLAYER "+ str(winner) + " WINS")
-		print("Play again? (y/n)")
+		print("Play again? [Y/n]")
 		exit = False
 		while not exit:
 			user_input = raw_input("")
 			if (user_input == "y"):
-				start_game_pvp()
+				start_game_single_player()
 			elif (user_input == "n"):
 				print_menu()
 			else:
 				print("Invalid option")
 
 def print_header():
-	os.system('tput reset')
+
 	if debug:
 		print(" === === === === === ===  DEBUG === === === === === === === ===")
+	else:
+		os.system('tput reset')
 	print(" === === === === === ===  === === === === === === === === ===")
 	print(" === === === === === ===  PYMOKU  === === === === === === ===")
 	print(" === === === === === ===  === === === === === === === === ===")
@@ -338,7 +425,7 @@ def start_game_pvp():
 
 	if win:
 		print("\nPLAYER "+ str(winner) + " WINS")
-	print("Play again? (y/n)")
+	print("Play again? [Y/n]")
 	exit = False
 	while not exit:
 		user_input = raw_input("")
@@ -350,9 +437,10 @@ def start_game_pvp():
 			print("Invalid option")
 
 def print_menu():
-	os.system('tput reset')
 	if debug:
 		print("=== === ===  DEBUG  === === === ===")
+	else:
+		os.system('tput reset')
 	print("=== === === === === === === === ===")
 	print("=== === ===   PYMOKU   === === ===")
 	print("=== === === === === === === === ===")
