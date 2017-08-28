@@ -247,7 +247,7 @@ def start_game_single_player():
 			print_state(state)
 
 			if len(get_available_positions(state)) == 0:
-				print("No more available postions. It's a tie!")
+				print("No more available positions. It's a tie!")
 				break
 
 			all_sequences = []
