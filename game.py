@@ -122,10 +122,6 @@ def get_diagonal_sequences(state):
 		sequences += get_sequences_in_array(diagonal)
 	return sequences
 
-# TODO
-# returns the score for the current state (using heuristics)
-def get_score(state):
-	pass
 
 # returns score given the length of a sequence
 def get_sequence_score(length):
@@ -136,10 +132,10 @@ def get_sequence_score(length):
 	elif length == 4:
 		return 591136
 	elif length == 5:
-		return 383056128
+		return 38305612800000
 
 
-def get_heuristic(state, player):
+def get_heuristic(state, player, round_number):
 	all_sequences = []
 	for sequence in get_horizontal_sequences(state):
 		all_sequences.append(sequence)
@@ -172,55 +168,27 @@ def get_heuristic(state, player):
 
 			elif sequence[2] >= 5:
 				if sequence[0] == PLAYER1:
-					player1_score += get_sequence_score(5)*sequence[1]
+					player1_score += get_sequence_score(5)
 				else:
-					player2_score += get_sequence_score(5)*sequence[1]
+					player2_score += get_sequence_score(5)
 
 	if (player == PLAYER1):
-		return ((player1_score - player2_score))
+		return ((player1_score - player2_score)*255)/round_number
 	else:
-		return ((player2_score - player1_score))
+		return ((player2_score - player1_score)*255)/round_number
 
-def is_there_a_winner(state):
-
-	all_sequences = []
-	for sequence in get_horizontal_sequences(state):
-		all_sequences.append(sequence)
-	for sequence in get_vertical_sequences(state):
-		all_sequences.append(sequence)
-	for sequence in get_diagonal_sequences(state):
-		all_sequences.append(sequence)
-
-	player1_score = 0
-	player2_score = 0
-	for sequence in all_sequences:
-		if len(sequence) > 0:
-			if sequence[2] >= 5:
-				return True
-
-	return False
-
-
-
-def alpha_beta(player, state, alpha, beta, rounds):
+def alpha_beta(player, state, alpha, beta, rounds, round_number):
 	possible_moves = get_available_positions(state)
-	#rounds += 1
 	bestMove = [-1,-1]
-	winner = is_there_a_winner(state)
-	if (winner or len(possible_moves) == 0 or rounds >= MAX_ROUNDS):
-		score = get_heuristic(state, player)
+	if ((len(possible_moves) == 0) or (rounds >= MAX_ROUNDS)):
+		score = get_heuristic(state, player, round_number+rounds)
 		return [score, bestMove]
 	else:
 		if(player == PLAYER2):
 			for move in possible_moves:
 				tmp_state = [copy.copy(element) for element in state]
 				make_move(tmp_state, move, player)
-				if debug:
-					print "teste"
-					print_state(tmp_state)
-					print_state(state)
-					#break
-				score = alpha_beta(PLAYER1, tmp_state, alpha, beta, rounds + 1)[0]
+				score = alpha_beta(PLAYER1, tmp_state, alpha, beta, rounds+1, round_number)[0]
 				if score > alpha:
 					alpha = score
 					bestMove = move
@@ -231,28 +199,25 @@ def alpha_beta(player, state, alpha, beta, rounds):
 			for move in possible_moves:
 				tmp_state = [copy.copy(element) for element in state]
 				make_move(tmp_state, move, player)
-				score = alpha_beta(PLAYER2, tmp_state, alpha,beta, rounds + 1)[0]
+				score = alpha_beta(PLAYER2, tmp_state, alpha,beta, rounds + 1, round_number)[0]
 				if score < beta:
 					beta = score
 					bestMove = move
 				if alpha >= beta:
 					return [beta, bestMove]
 			return [beta, bestMove]
-		if debug:
-			print "returning move: " + str(bestMove)
 		if rounds == 0:
 			return [score, bestMove]
 
-
-
-#TODO
-def get_pc_move(state):
-	tmp = alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0)
-	print "best heuristic move = " + str(tmp)
-	#return get_available_positions(state)[0]
+#returns best move using minimax algorithm
+def get_pc_move(state, round_number):
+	tmp = alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0, round_number)
 	return tmp[1]
 
+#starts game agains AI
 def start_game_single_player():
+		round_number = 1
+
 		print("Start game")
 		state = get_initial_state()
 		turn = PLAYER1
@@ -307,7 +272,8 @@ def start_game_single_player():
 						if debug: print("Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
 						win = True
 						winner = sequence[0]
-			if debug: print("SCORE<"+str(PLAYER1)+">: "+str(player1_score)+ "    SCORE<"+str(PLAYER2)+">: "+str(player2_score))
+			if debug:
+				print("SCORE<"+str(PLAYER1)+">: "+str(player1_score)+ "    SCORE<"+str(PLAYER2)+">: "+str(player2_score))
 			if win == True:
 				print("Game ended")
 				break
@@ -321,6 +287,7 @@ def start_game_single_player():
 						row = int(raw_input("row: "))
 						col = int(raw_input("col: "))
 						move = make_move(state, [row,col], turn)
+						round_number += 1
 					except IndexError:
 						print("Please insert values between 0 and 14")
 						error = True
@@ -330,7 +297,8 @@ def start_game_single_player():
 					if error == False and move == False:
 						print("Position is busy")
 			else:
-				make_move(state, get_pc_move(state), turn)
+				make_move(state, get_pc_move(state, round_number), turn)
+				round_number += 1
 
 			if turn == PLAYER1:
 				turn = PLAYER2
@@ -360,6 +328,7 @@ def print_header():
 	print(" === === === === === ===  PYMOKU  === === === === === === ===")
 	print(" === === === === === ===  === === === === === === === === ===")
 
+#Stats game person vs person
 def start_game_pvp():
 	print("Start game")
 	state = get_initial_state()
