@@ -12,6 +12,7 @@ PLAYER2 = "[X]"
 debug = False
 MAX_ROUNDS = 2
 
+
 #^C handler
 def signal_handler(signal, frame):
 	print('\nSee you soon!')
@@ -199,39 +200,57 @@ def is_there_a_winner(state):
 
 	return False
 
+
+
 def alpha_beta(player, state, alpha, beta, rounds):
 	possible_moves = get_available_positions(state)
-	rounds += 1
+	#rounds += 1
+	bestMove = [-1,-1]
 	winner = is_there_a_winner(state)
-	if(winner or len(possible_moves) == 0 or rounds > MAX_ROUNDS):
-		return get_heuristic(state,player)
-
-	if(player == PLAYER2):
-		for move in possible_moves:
-			tmp_state = [copy.copy(element) for element in state]
-			make_move(tmp_state, move, player)
-			score = alpha_beta(PLAYER1, tmp_state, alpha, beta, rounds)
-			if score > alpha:
-				alpha = score
-			if alpha >= beta:
-				return alpha
-		return alpha
+	if (winner or len(possible_moves) == 0 or rounds >= MAX_ROUNDS):
+		score = get_heuristic(state, player)
+		return [score, bestMove]
 	else:
-		for move in possible_moves:
-			tmp_state = [copy.copy(element) for element in state]
-			make_move(tmp_state, move, player)
-			score = alpha_beta(PLAYER2, tmp_state, alpha,beta, rounds)
-			if score < beta:
-				beta = score
-			if alpha >= beta:
-				return beta
-		return beta
+		if(player == PLAYER2):
+			for move in possible_moves:
+				tmp_state = [copy.copy(element) for element in state]
+				make_move(tmp_state, move, player)
+				if debug:
+					print "teste"
+					print_state(tmp_state)
+					print_state(state)
+					#break
+				score = alpha_beta(PLAYER1, tmp_state, alpha, beta, rounds + 1)[0]
+				if score > alpha:
+					alpha = score
+					bestMove = move
+				if alpha >= beta:
+					return [alpha, bestMove]
+			return [alpha, bestMove]
+		else:
+			for move in possible_moves:
+				tmp_state = [copy.copy(element) for element in state]
+				make_move(tmp_state, move, player)
+				score = alpha_beta(PLAYER2, tmp_state, alpha,beta, rounds + 1)[0]
+				if score < beta:
+					beta = score
+					bestMove = move
+				if alpha >= beta:
+					return [beta, bestMove]
+			return [beta, bestMove]
+		if debug:
+			print "returning move: " + str(bestMove)
+		if rounds == 0:
+			return [score, bestMove]
+
+
 
 #TODO
 def get_pc_move(state):
 	tmp = alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0)
 	print "best heuristic move = " + str(tmp)
-	return get_available_positions(state)[0]
+	#return get_available_positions(state)[0]
+	return tmp[1]
 
 def start_game_single_player():
 		print("Start game")
@@ -355,7 +374,7 @@ def start_game_pvp():
 		print_state(state)
 
 		if len(get_available_positions(state)) == 0:
-			print("No more available postions. It's a tie!")
+			print("No more available positions. It's a tie!")
 			break
 
 		all_sequences = []
