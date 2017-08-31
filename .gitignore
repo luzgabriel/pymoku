@@ -100,4 +100,7 @@ ENV/
 # mypy
 .mypy_cache/
 
+# workspace
+.idea/
+
 test.py
