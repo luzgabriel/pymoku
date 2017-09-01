@@ -75,6 +75,22 @@ def is_position_available(state, pos):
 	pos_y = pos[1]
 	return state[pos_x][pos_y] == EMPTY
 
+
+def get_positions_bounded(state, moves):
+	positions = []
+	for move in moves:
+		move_x = move[0]
+		move_y = move[1]
+		for i in range(5):
+			for j in range(5):
+				new_bound_x = move_x + (i - 2)
+				new_bound_y = move_y + (j - 2)
+				if (new_bound_x >= 0) and (new_bound_y >= 0) and (new_bound_x < 15) and (new_bound_y < 15):
+					if ([new_bound_x, new_bound_y] not in positions) and (state[new_bound_x][new_bound_y] == EMPTY):
+						positions.append([new_bound_x,new_bound_y])
+	#print "positions = "+str(positions)
+	return positions
+
 # user = PLAYER1 or PLAYER2
 def make_move(state, pos, user):
 	pos_x = pos[0]
@@ -178,8 +194,8 @@ def get_sequences_from_positions(state, moves):
 				sequences.extend(sequence)
 
 		diagonal = get_forward_diagonals_from_position(state,move)
-		print "forward"
-		print diagonal
+		#print "forward"
+		#print diagonal
 		if "F" + str(diagonal[0]) not in visited_diagonals:
 			sequence = get_sequences_in_array(diagonal)
 			visited.append("F" + str(diagonal[0]))
@@ -187,8 +203,8 @@ def get_sequences_from_positions(state, moves):
 				sequences.extend(sequence)
 
 		diagonal = get_backwards_diagonals_from_position(state,move)
-		print "backwards"
-		print diagonal
+		#print "backwards"
+		#print diagonal
 		if "B" + str(diagonal[0]) not in visited:
 			sequence = get_sequences_in_array(diagonal)
 			visited.append("B" + str(diagonal[0]))
@@ -312,8 +328,9 @@ def unmake_move(state, move):
 	state[move[0]][move[1]] = EMPTY
 
 def alpha_beta(player, state, alpha, beta, rounds, round_number, moves):
-
-	possible_moves = get_available_positions_with_bounds(state, get_bounds(moves))
+	possible_moves = get_positions_bounded(state, moves)
+	#possible_moves = get_available_positions_with_bounds(state, get_bounds(moves))
+	#print possible_moves
 	bestMove = [-1,-1]
 	maximum = MAX_ROUNDS
 	#if round_number > 25:
