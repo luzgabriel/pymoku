@@ -10,7 +10,7 @@ EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
 debug = False
-MAX_ROUNDS = 2
+MAX_ROUNDS = 3
 
 
 #^C handler
@@ -104,14 +104,98 @@ def get_bounds(moves):
 	if min_x < 2:
 		min_x = 2
 	if max_x > 12:
-		max_x = 12 
+		max_x = 12
 	if min_y < 2:
 		min_y = 2
 	if max_y > 12:
-		max_y = 12 
+		max_y = 12
 	return [min_x - 2, max_x + 2, min_y - 2, max_y + 2]
 
+def get_forward_diagonals_from_position(state, pos):
+	diagonals = []
+	pos_x = pos[0]
+	pos_y = pos[1]
+	while ((pos_x + 1) < 15) and ((pos_y + 1) < 15):
+		pos_x += 1
+		pos_y += 1
+		diagonals.append([pos_x,pos_y])
+	pos_x = pos[0]
+	pos_y = pos[1]
+	while ((pos_x - 1) >= 0) and ((pos_y - 1) >= 0):
+		pos_x -= 1
+		pos_y -= 1
+		diagonals.append([pos_x,pos_y])
+	pos_x = pos[0]
+	pos_y = pos[1]
+	diagonals.append([pos_x, pos_y])
+	return diagonals
 
+def get_backwards_diagonals_from_position(state, pos):
+	diagonals = []
+	pos_x = pos[0]
+	pos_y = pos[1]
+	while ((pos_x + 1) < 15) and ((pos_y - 1) >= 0):
+		pos_x += 1
+		pos_y -= 1
+		diagonals.append([pos_x,pos_y])
+	pos_x = pos[0]
+	pos_y = pos[1]
+	while ((pos_x - 1) >= 0) and ((pos_y + 1) < 15):
+		pos_x -= 1
+		pos_y += 1
+		diagonals.append([pos_x,pos_y])
+	pos_x = pos[0]
+	pos_y = pos[1]
+	diagonals.append([pos_x, pos_y])
+	return diagonals
+
+def get_vertical_from_position(state, pos):
+	a = np.array(state)
+	return a[:,pos[1]]
+
+def get_horizontal_from_position(state, pos):
+	a = np.array(state)
+	return a[pos[0],:]
+
+
+def get_sequences_from_positions(state, moves):
+	sequences = []
+	visited = []
+	visited_diagonals = []
+	for move in moves:
+		if move[1] not in visited:
+			vertical = get_vertical_from_position(state,move)
+			sequence = get_sequences_in_array(vertical)
+			visited.append(move[1])
+			if len(sequence) > 0:
+				sequences.extend(sequence)
+
+		if move[0]+15 not in visited:
+			horizontal = get_horizontal_from_position(state,move)
+			sequence = get_sequences_in_array(horizontal)
+			visited.append(move[0]+15)
+			if len(sequence) > 0:
+				sequences.extend(sequence)
+
+		diagonal = get_forward_diagonals_from_position(state,move)
+		print "forward"
+		print diagonal
+		if "F" + str(diagonal[0]) not in visited_diagonals:
+			sequence = get_sequences_in_array(diagonal)
+			visited.append("F" + str(diagonal[0]))
+			if len(diagonal) > 0:
+				sequences.extend(sequence)
+
+		diagonal = get_backwards_diagonals_from_position(state,move)
+		print "backwards"
+		print diagonal
+		if "B" + str(diagonal[0]) not in visited:
+			sequence = get_sequences_in_array(diagonal)
+			visited.append("B" + str(diagonal[0]))
+			if len(diagonal) > 0:
+				sequences.extend(sequence)
+
+	return sequences
 #returns sequences in an array
 def get_sequences_in_array(array):
 	sequences = []
@@ -184,15 +268,15 @@ def get_sequence_score(length):
 		return 38305612800000
 
 
-def get_heuristic(state, player, round_number):
-	all_sequences = []
-	for sequence in get_horizontal_sequences(state):
-		all_sequences.append(sequence)
-	for sequence in get_vertical_sequences(state):
-		all_sequences.append(sequence)
-	for sequence in get_diagonal_sequences(state):
-		all_sequences.append(sequence)
-
+def get_heuristic(state, player, round_number, moves):
+	# all_sequences = []
+	# for sequence in get_horizontal_sequences(state):
+	# 	all_sequences.append(sequence)
+	# for sequence in get_vertical_sequences(state):
+	# 	all_sequences.append(sequence)
+	# for sequence in get_diagonal_sequences(state):
+	# 	all_sequences.append(sequence)
+	all_sequences = get_sequences_from_positions(state,moves)
 	player1_score = 0
 	player2_score = 0
 	for sequence in all_sequences:
@@ -221,26 +305,30 @@ def get_heuristic(state, player, round_number):
 				else:
 					player2_score += get_sequence_score(5)
 
-	if (player == PLAYER1):
-		return ((player1_score - player2_score)*255)/round_number
-	else:
-		return ((player2_score - player1_score)*255)/round_number
 
-def alpha_beta(player, state, alpha, beta, rounds, round_number, bounds):
-	possible_moves = get_available_positions_with_bounds(state, bounds)
+	return ((player2_score - player1_score)*255)/round_number
+
+def unmake_move(state, move):
+	state[move[0]][move[1]] = EMPTY
+
+def alpha_beta(player, state, alpha, beta, rounds, round_number, moves):
+
+	possible_moves = get_available_positions_with_bounds(state, get_bounds(moves))
 	bestMove = [-1,-1]
 	maximum = MAX_ROUNDS
 	#if round_number > 25:
 		#maximum = 4
 	if ((len(possible_moves) == 0) or (rounds >= maximum)):
-		score = get_heuristic(state, player, round_number+rounds)
+		score = get_heuristic(state, player, round_number+rounds,moves)
 		return [score, bestMove]
 	else:
 		if(player == PLAYER2):
 			for move in possible_moves:
-				tmp_state = [copy.copy(element) for element in state]
-				make_move(tmp_state, move, player)
-				score = alpha_beta(PLAYER1, tmp_state, alpha, beta, rounds+1, round_number, bounds)[0]
+				make_move(state, move, player)
+				moves.append(move)
+				score = alpha_beta(PLAYER1, state, alpha, beta, rounds+1, round_number, moves)[0]
+				unmake_move(state,move)
+				moves.remove(move)
 				if score > alpha:
 					alpha = score
 					bestMove = move
@@ -249,9 +337,11 @@ def alpha_beta(player, state, alpha, beta, rounds, round_number, bounds):
 			return [alpha, bestMove]
 		else:
 			for move in possible_moves:
-				tmp_state = [copy.copy(element) for element in state]
-				make_move(tmp_state, move, player)
-				score = alpha_beta(PLAYER2, tmp_state, alpha,beta, rounds + 1, round_number, bounds)[0]
+				make_move(state, move, player)
+				moves.append(move)
+				score = alpha_beta(PLAYER2, state, alpha,beta, rounds + 1, round_number, moves)[0]
+				unmake_move(state, move)
+				moves.remove(move)
 				if score < beta:
 					beta = score
 					bestMove = move
@@ -262,8 +352,8 @@ def alpha_beta(player, state, alpha, beta, rounds, round_number, bounds):
 			return [score, bestMove]
 
 #returns best move using minimax algorithm
-def get_pc_move(state, round_number, bounds):
-	tmp = alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0, round_number, bounds)
+def get_pc_move(state, round_number, moves):
+	tmp = alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0, round_number, moves)
 	return tmp[1]
 
 #starts game agains AI
@@ -351,8 +441,9 @@ def start_game_single_player():
 						print("Position is busy")
 
 			else:
-				bounds = get_bounds(moves)
-				make_move(state, get_pc_move(state, round_number, bounds), turn)
+				move = get_pc_move(state, round_number, moves)
+				make_move(state, move, turn)
+				moves.append(move)
 				round_number += 1
 
 			if turn == PLAYER1:
