@@ -10,7 +10,7 @@ EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
 debug = False
-MAX_ROUNDS = 5
+MAX_ROUNDS = 3
 
 #^C handler
 def signal_handler(signal, frame):
@@ -204,10 +204,6 @@ def alpha_beta(player, state, alpha, beta, rounds, round_number, moves):
 	possible_moves = get_positions_bounded(state, moves)
 	bestMove = [-1,-1]
 	maximum = MAX_ROUNDS
-	if(len(possible_moves) > 40):
-		maximum = MAX_ROUNDS-3
-	elif(len(possible_moves) > 20):
-		maximum = MAX_ROUNDS-2
 
 	if ((len(possible_moves) == 0) or (rounds >= maximum)):
 		score = get_heuristic(state, player, round_number+rounds,moves)
