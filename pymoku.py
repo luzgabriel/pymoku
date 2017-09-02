@@ -10,7 +10,7 @@ EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
 debug = False
-MAX_ROUNDS = 3
+MAX_ROUNDS = 2
 
 #^C handler
 def signal_handler(signal, frame):
@@ -188,13 +188,12 @@ def get_heuristic(state, player, round_number, moves):
 	score = 0
 	for sequence in all_sequences:
 		if len(sequence) > 0:
-			for i in range(2, 4):
+			for i in range(2, 5):
 				if sequence[2] == i:
 					score = score + get_sequence_score(i)*sequence[1] if sequence[0] == PLAYER2 else score - get_sequence_score(i)*sequence[1]
 					break;
 			if sequence[2] >= 5:
 				score = score + get_sequence_score(5) if sequence[0] == PLAYER2 else score - get_sequence_score(5)
-
 	return (score*255)/round_number
 
 def unmake_move(state, move):
