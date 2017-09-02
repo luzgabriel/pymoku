@@ -10,8 +10,7 @@ EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
 debug = False
-MAX_ROUNDS = 3
-
+MAX_ROUNDS = 5
 
 #^C handler
 def signal_handler(signal, frame):
@@ -26,20 +25,6 @@ def get_initial_state():
 		state.append([EMPTY for j in range(15)])
 	return state
 
-# prints a state of the board
-def print_state(state):
-	s = " "
-	for j in range(15):
-		s += "  " + str(j).zfill(2)
-	print(s)
-	i=0;
-	for row in state:
-		string = ""
-		for column in row:
-			string += column + " "
-		print(str(i).zfill(2) + " " + string)
-		i+=1
-
 # returns empty positions
 def get_available_positions(state):
 	available_positions = []
@@ -49,32 +34,9 @@ def get_available_positions(state):
 				available_positions.append([pos_x,pos_y])
 	return available_positions
 
-# returns empty positions in the bounds established
-def get_available_positions_with_bounds(state, bounds):
-	available_positions = []
-	if len(bounds) == 4:
-		bound_x_min = bounds[0]
-		bound_x_max = bounds[1]
-		bound_y_min = bounds[2]
-		bound_y_max = bounds[3]
-	else:
-		bound_x_min = bounds[0]
-		bound_x_max = bounds[0]
-		bound_y_min = bounds[0]
-		bound_y_max = bounds[0]
-
-	for pos_x, row in enumerate(state):
-		for pos_y, pos in enumerate(row):
-			if (pos == EMPTY) and (pos_x >= bound_x_min) and (pos_x <= bound_x_max) and (pos_y >= bound_y_min) and (pos_y <= bound_y_max):
-				available_positions.append([pos_x,pos_y])
-	return available_positions
-
 # given a position (pos) [x,y] of the board, returns if its empty
 def is_position_available(state, pos):
-	pos_x = pos[0]
-	pos_y = pos[1]
-	return state[pos_x][pos_y] == EMPTY
-
+	return state[pos[0]][pos[1]] == EMPTY
 
 def get_positions_bounded(state, moves):
 	positions = []
@@ -88,15 +50,12 @@ def get_positions_bounded(state, moves):
 				if (new_bound_x >= 0) and (new_bound_y >= 0) and (new_bound_x < 15) and (new_bound_y < 15):
 					if ([new_bound_x, new_bound_y] not in positions) and (state[new_bound_x][new_bound_y] == EMPTY):
 						positions.append([new_bound_x,new_bound_y])
-	#print "positions = "+str(positions)
 	return positions
 
 # user = PLAYER1 or PLAYER2
 def make_move(state, pos, user):
-	pos_x = pos[0]
-	pos_y = pos[1]
 	if is_position_available(state, pos):
-		state[pos_x][pos_y] = user
+		state[pos[0]][pos[1]] = user
 		return True
 	return False
 
@@ -127,44 +86,6 @@ def get_bounds(moves):
 		max_y = 12
 	return [min_x - 2, max_x + 2, min_y - 2, max_y + 2]
 
-def get_forward_diagonals_from_position(state, pos):
-	diagonals = []
-	pos_x = pos[0]
-	pos_y = pos[1]
-	while ((pos_x + 1) < 15) and ((pos_y + 1) < 15):
-		pos_x += 1
-		pos_y += 1
-		diagonals.append([pos_x,pos_y])
-	pos_x = pos[0]
-	pos_y = pos[1]
-	while ((pos_x - 1) >= 0) and ((pos_y - 1) >= 0):
-		pos_x -= 1
-		pos_y -= 1
-		diagonals.append([pos_x,pos_y])
-	pos_x = pos[0]
-	pos_y = pos[1]
-	diagonals.append([pos_x, pos_y])
-	return diagonals
-
-def get_backwards_diagonals_from_position(state, pos):
-	diagonals = []
-	pos_x = pos[0]
-	pos_y = pos[1]
-	while ((pos_x + 1) < 15) and ((pos_y - 1) >= 0):
-		pos_x += 1
-		pos_y -= 1
-		diagonals.append([pos_x,pos_y])
-	pos_x = pos[0]
-	pos_y = pos[1]
-	while ((pos_x - 1) >= 0) and ((pos_y + 1) < 15):
-		pos_x -= 1
-		pos_y += 1
-		diagonals.append([pos_x,pos_y])
-	pos_x = pos[0]
-	pos_y = pos[1]
-	diagonals.append([pos_x, pos_y])
-	return diagonals
-
 def get_vertical_from_position(state, pos):
 	a = np.array(state)
 	return a[:,pos[1]]
@@ -173,11 +94,9 @@ def get_horizontal_from_position(state, pos):
 	a = np.array(state)
 	return a[pos[0],:]
 
-
 def get_sequences_from_positions(state, moves):
 	sequences = []
 	visited = []
-	visited_diagonals = []
 	for move in moves:
 		if move[1] not in visited:
 			vertical = get_vertical_from_position(state,move)
@@ -193,25 +112,8 @@ def get_sequences_from_positions(state, moves):
 			if len(sequence) > 0:
 				sequences.extend(sequence)
 
-		diagonal = get_forward_diagonals_from_position(state,move)
-		#print "forward"
-		#print diagonal
-		if "F" + str(diagonal[0]) not in visited_diagonals:
-			sequence = get_sequences_in_array(diagonal)
-			visited.append("F" + str(diagonal[0]))
-			if len(diagonal) > 0:
-				sequences.extend(sequence)
-
-		diagonal = get_backwards_diagonals_from_position(state,move)
-		#print "backwards"
-		#print diagonal
-		if "B" + str(diagonal[0]) not in visited:
-			sequence = get_sequences_in_array(diagonal)
-			visited.append("B" + str(diagonal[0]))
-			if len(diagonal) > 0:
-				sequences.extend(sequence)
-
 	return sequences
+
 #returns sequences in an array
 def get_sequences_in_array(array):
 	sequences = []
@@ -244,22 +146,6 @@ def get_sequences_in_array(array):
 	return sequences
 
 # returns an array of sequences
-def get_horizontal_sequences(state):
-	sequences = []
-	a = np.array(state)
-	for row in range(15):
-		sequences += get_sequences_in_array(a[row,:])
-	return sequences
-
-# returns an array of sequences
-def get_vertical_sequences(state):
-	a = np.array(state)
-	sequences = []
-	for col in range(15):
-		sequences += get_sequences_in_array(a[:,col])
-	return sequences
-
-# returns an array of sequences
 def get_diagonal_sequences(state):
 	sequences = []
 	x,y = 15,15
@@ -281,311 +167,103 @@ def get_sequence_score(length):
 	elif length == 4:
 		return 591136
 	elif length == 5:
-		return 38305612800000
+		return 383056128
 
+def get_all_sequences(state, moves):
+	all_sequences = (get_sequences_from_positions(state,moves))
+	for sequence in get_diagonal_sequences(state):
+		all_sequences.append(sequence)
+	return all_sequences
 
-def get_heuristic(state, player, round_number, moves):
-	# all_sequences = []
-	# for sequence in get_horizontal_sequences(state):
-	# 	all_sequences.append(sequence)
-	# for sequence in get_vertical_sequences(state):
-	# 	all_sequences.append(sequence)
-	# for sequence in get_diagonal_sequences(state):
-	# 	all_sequences.append(sequence)
-	all_sequences = get_sequences_from_positions(state,moves)
-	player1_score = 0
-	player2_score = 0
+def exists_winner(state, moves):
+	all_sequences = get_all_sequences(state, moves)
 	for sequence in all_sequences:
 		if len(sequence) > 0:
-			if sequence[2] == 2:
-				if sequence[0] == PLAYER1:
-					player1_score += get_sequence_score(2)*sequence[1]
-				else:
-					player2_score += get_sequence_score(2)*sequence[1]
+			if sequence[2] == 5:
+				return sequence[0]
+	return EMPTY
 
-			elif sequence[2] == 3:
-				if sequence[0] == PLAYER1:
-					player1_score += get_sequence_score(3)*sequence[1]
-				else:
-					player2_score += get_sequence_score(3)*sequence[1]
+def get_heuristic(state, player, round_number, moves):
+	all_sequences = get_all_sequences(state, moves)
+	score = 0
+	for sequence in all_sequences:
+		if len(sequence) > 0:
+			for i in range(2, 4):
+				if sequence[2] == i:
+					score = score + get_sequence_score(i)*sequence[1] if sequence[0] == PLAYER2 else score - get_sequence_score(i)*sequence[1]
+					break;
+			if sequence[2] >= 5:
+				score = score + get_sequence_score(5) if sequence[0] == PLAYER2 else score - get_sequence_score(5)
 
-			elif sequence[2] == 4:
-				if sequence[0] == PLAYER1:
-					player1_score += get_sequence_score(4)*sequence[1]
-				else:
-					player2_score += get_sequence_score(4)*sequence[1]
-
-			elif sequence[2] >= 5:
-				if sequence[0] == PLAYER1:
-					player1_score += get_sequence_score(5)
-				else:
-					player2_score += get_sequence_score(5)
-
-
-	return ((player2_score - player1_score)*255)/round_number
+	return (score*255)/round_number
 
 def unmake_move(state, move):
 	state[move[0]][move[1]] = EMPTY
 
 def alpha_beta(player, state, alpha, beta, rounds, round_number, moves):
 	possible_moves = get_positions_bounded(state, moves)
-	#possible_moves = get_available_positions_with_bounds(state, get_bounds(moves))
-	#print possible_moves
 	bestMove = [-1,-1]
 	maximum = MAX_ROUNDS
-	#if round_number > 25:
-		#maximum = 4
+	if(len(possible_moves) > 40):
+		maximum = MAX_ROUNDS-3
+	elif(len(possible_moves) > 20):
+		maximum = MAX_ROUNDS-2
+
 	if ((len(possible_moves) == 0) or (rounds >= maximum)):
 		score = get_heuristic(state, player, round_number+rounds,moves)
 		return [score, bestMove]
 	else:
-		if(player == PLAYER2):
-			for move in possible_moves:
-				make_move(state, move, player)
-				moves.append(move)
-				score = alpha_beta(PLAYER1, state, alpha, beta, rounds+1, round_number, moves)[0]
-				unmake_move(state,move)
-				moves.remove(move)
+		for move in possible_moves:
+			make_move(state, move, player)
+			moves.append(move)
+			score = alpha_beta(PLAYER2 if player==PLAYER1 else PLAYER1, state, alpha,beta, rounds + 1, round_number, moves)[0]
+			unmake_move(state, move)
+			moves.remove(move)
+			if(player == PLAYER2):
 				if score > alpha:
 					alpha = score
 					bestMove = move
-				if alpha >= beta:
-					return [alpha, bestMove]
-			return [alpha, bestMove]
-		else:
-			for move in possible_moves:
-				make_move(state, move, player)
-				moves.append(move)
-				score = alpha_beta(PLAYER2, state, alpha,beta, rounds + 1, round_number, moves)[0]
-				unmake_move(state, move)
-				moves.remove(move)
+			else:
 				if score < beta:
 					beta = score
 					bestMove = move
-				if alpha >= beta:
-					return [beta, bestMove]
-			return [beta, bestMove]
-		if rounds == 0:
-			return [score, bestMove]
+			if alpha >= beta:
+				return [alpha if player==PLAYER2 else beta, bestMove]
+		return [alpha if player==PLAYER2 else beta, bestMove]
 
 #returns best move using minimax algorithm
 def get_pc_move(state, round_number, moves):
-	tmp = alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0, round_number, moves)
-	return tmp[1]
+	return alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0, round_number, moves)[1]
 
-#starts game agains AI
-def start_game_single_player():
-		round_number = 1
-		moves = []
-		print("Start game")
-		state = get_initial_state()
-		turn = PLAYER1
-
-		all_sequences = []
-		win = False
-		winner = None
-
-		while win == False:
-			print_header()
-			print_state(state)
-
-			if len(get_available_positions(state)) == 0:
-				print("No more available positions. It's a tie!")
-				break
-
-			all_sequences = []
-			for sequence in get_horizontal_sequences(state):
-				all_sequences.append(sequence)
-			for sequence in get_vertical_sequences(state):
-				all_sequences.append(sequence)
-			for sequence in get_diagonal_sequences(state):
-				all_sequences.append(sequence)
-
-			player1_score = 0
-			player2_score = 0
-			for sequence in all_sequences:
-				if len(sequence) > 0:
-					if sequence[2] == 2:
-						if sequence[0] == PLAYER1:
-							player1_score += get_sequence_score(2)*sequence[1]
-						else:
-							player2_score += get_sequence_score(2)*sequence[1]
-						if debug: print("Dupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
-					elif sequence[2] == 3:
-						if sequence[0] == PLAYER1:
-							player1_score += get_sequence_score(3)*sequence[1]
-						else:
-							player2_score += get_sequence_score(3)*sequence[1]
-						if debug: print("Tripla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
-					elif sequence[2] == 4:
-						if sequence[0] == PLAYER1:
-							player1_score += get_sequence_score(4)*sequence[1]
-						else:
-							player2_score += get_sequence_score(4)*sequence[1]
-						if debug: print("Quadrupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
-					elif sequence[2] >= 5:
-						if sequence[0] == PLAYER1:
-							player1_score += get_sequence_score(5)*sequence[1]
-						else:
-							player2_score += get_sequence_score(5)*sequence[1]
-						if debug: print("Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
-						win = True
-						winner = sequence[0]
-			if debug:
-				print("SCORE<"+str(PLAYER1)+">: "+str(player1_score)+ "    SCORE<"+str(PLAYER2)+">: "+str(player2_score))
-			if win == True:
-				print("Game ended")
-				break
-
-			if turn == PLAYER1:
-				move = False
-				while move == False:
-					print("Player " + turn + "'s turn:")
-					error = False
-					try:
-						row = int(raw_input("row: "))
-						col = int(raw_input("col: "))
-						move = make_move(state, [row,col], turn)
-						moves.append([row,col])
-						round_number += 1
-					except IndexError:
-						print("Please insert values between 0 and 14")
-						error = True
-					except ValueError:
-						print("Please insert values between 0 and 14")
-						error = True
-					if error == False and move == False:
-						print("Position is busy")
-
-			else:
-				move = get_pc_move(state, round_number, moves)
-				make_move(state, move, turn)
-				moves.append(move)
-				round_number += 1
-
-			if turn == PLAYER1:
-				turn = PLAYER2
-			elif turn == PLAYER2:
-				turn = PLAYER1
-
-		if win:
-			print("\nPLAYER "+ str(winner) + " WINS")
-		print("Play again? [Y/n]")
-		exit = False
-		while not exit:
-			user_input = raw_input("")
-			if (user_input == "y"):
-				start_game_single_player()
-			elif (user_input == "n"):
-				print_menu()
-			else:
-				print("Invalid option")
+def start_game(pvp):
+	round_number = 1
+	moves = []
+	state = get_initial_state()
+	turn = PLAYER1
+	winner = EMPTY
+	print_header()
+	print_state(state)
+	while winner == EMPTY:
+		if len(moves) == 225:
+			break
+		move = input_position(turn, state) if turn==PLAYER1 or pvp else get_pc_move(state, round_number, moves)
+		make_move(state, move, turn)
+		moves.append(move)
+		round_number += 1
+		winner = exists_winner(state, moves)
+		turn = PLAYER2 if turn==PLAYER1 else PLAYER1
+		print_header()
+		print_state(state)
+	game_over(winner, pvp)
 
 def print_header():
-
 	if debug:
 		print(" === === === === === ===  DEBUG === === === === === === === ===")
 	else:
 		os.system('tput reset')
 	print(" === === === === === ===  === === === === === === === === ===")
-	print(" === === === === === ===  PYMOKU		=== === === === === === ===")
+	print(" === === === === === ===  PYMOKU  === === === === === === ===")
 	print(" === === === === === ===  === === === === === === === === ===")
-
-#Stats game person vs person
-def start_game_pvp():
-	print("Start game")
-	state = get_initial_state()
-	turn = PLAYER1
-
-	all_sequences = []
-	win = False
-	winner = None
-
-	while win == False:
-		print_header()
-		print_state(state)
-
-		if len(get_available_positions(state)) == 0:
-			print("No more available positions. It's a tie!")
-			break
-
-		all_sequences = []
-		for sequence in get_horizontal_sequences(state):
-			all_sequences.append(sequence)
-		for sequence in get_vertical_sequences(state):
-			all_sequences.append(sequence)
-		for sequence in get_diagonal_sequences(state):
-			all_sequences.append(sequence)
-
-		player1_score = 0
-		player2_score = 0
-		for sequence in all_sequences:
-			if len(sequence) > 0:
-				if sequence[2] == 2:
-					if sequence[0] == PLAYER1:
-						player1_score += get_sequence_score(2)*sequence[1]
-					else:
-						player2_score += get_sequence_score(2)*sequence[1]
-					if debug: print("Dupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
-				elif sequence[2] == 3:
-					if sequence[0] == PLAYER1:
-						player1_score += get_sequence_score(3)*sequence[1]
-					else:
-						player2_score += get_sequence_score(3)*sequence[1]
-					if debug: print("Tripla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
-				elif sequence[2] == 4:
-					if sequence[0] == PLAYER1:
-						player1_score += get_sequence_score(4)*sequence[1]
-					else:
-						player2_score += get_sequence_score(4)*sequence[1]
-					if debug: print("Quadrupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
-				elif sequence[2] >= 5:
-					if sequence[0] == PLAYER1:
-						player1_score += get_sequence_score(5)*sequence[1]
-					else:
-						player2_score += get_sequence_score(5)*sequence[1]
-					if debug: print("Quintupla de " + str(sequence[0]) + " com " + str(sequence[1]) + " abertura(s)")
-					win = True
-					winner = sequence[0]
-		if debug: print("SCORE<"+str(PLAYER1)+">: "+str(player1_score)+ "    SCORE<"+str(PLAYER2)+">: "+str(player2_score))
-		if win == True:
-			print("Game ended")
-			break
-
-		move = False
-		while move == False:
-			print("Player " + turn + "'s turn:")
-			error = False
-			try:
-				row = int(raw_input("row: "))
-				col = int(raw_input("col: "))
-				move = make_move(state, [row,col], turn)
-			except IndexError:
-				print("Please insert values between 0 and 14")
-				error = True
-			except ValueError:
-				print("Please insert values between 0 and 14")
-				error = True
-			if error == False and move == False:
-				print("Position is busy")
-
-		if turn == PLAYER1:
-			turn = PLAYER2
-		elif turn == PLAYER2:
-			turn = PLAYER1
-
-	if win:
-		print("\nPLAYER "+ str(winner) + " WINS")
-	print("Play again? [Y/n]")
-	exit = False
-	while not exit:
-		user_input = raw_input("")
-		if (user_input == "y"):
-			start_game_pvp()
-		elif (user_input == "n"):
-			print_menu()
-		else:
-			print("Invalid option")
 
 def print_menu():
 	if debug:
@@ -605,15 +283,62 @@ def print_menu():
 	while not exit:
 		user_input = raw_input("=== Insert option: ")
 		if user_input == "1":
-			start_game_pvp()
+			start_game(True)
 		elif user_input == "2":
-			start_game_single_player()
+			start_game(False)
 		elif user_input == "3":
 			exit = True
 			print("See you soon!")
 			sys.exit(0)
 		else:
 			print("Invalid option")
+
+def game_over(winner, pvp):
+	print "GAME OVER"
+	print("\nPLAYER "+ str(winner) + " WINS" if winner != EMPTY else "No more available positions. It's a tie!")
+	print("Play again? [Y/n]")
+	exit = False
+	while not exit:
+		user_input = raw_input("")
+		if (user_input == "y"):
+			start_game(pvp)
+		elif (user_input == "n"):
+			print_menu()
+		else:
+			print("Invalid option")
+
+
+def input_position(turn,state):
+	while True:
+		try:
+			print("Player " + turn + "'s turn:")
+			row = int(raw_input("row: "))
+			col = int(raw_input("col: "))
+			if (row > 15 or col > 15):
+				print("Please insert values between 0 and 14")
+			elif not is_position_available(state, [row,col]):
+				print("Position is busy")
+			else:
+				return [row,col]
+		except IndexError:
+			print("Please insert values between 0 and 14")
+		except ValueError:
+			print("Please insert values between 0 and 14")
+	return []
+
+# prints a state of the board
+def print_state(state):
+	s = " "
+	for j in range(15):
+		s += "  " + str(j).zfill(2)
+	print(s)
+	i=0;
+	for row in state:
+		string = ""
+		for column in row:
+			string += column + " "
+		print(str(i).zfill(2) + " " + string)
+		i+=1
 
 if __name__ == "__main__" :
 	if len(sys.argv) > 1:
