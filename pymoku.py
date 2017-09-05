@@ -10,7 +10,7 @@ EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
 debug = False
-MAX_ROUNDS = 2
+MAX_ROUNDS = 3
 
 #^C handler
 def signal_handler(signal, frame):
@@ -234,16 +234,19 @@ def start_game(pvp):
 	round_number = 1
 	moves = []
 	state = get_initial_state()
-	turn = PLAYER1
+	turn = get_initial_player(pvp)
 	winner = EMPTY
 	print_header()
 	print_state(state)
 	while winner == EMPTY:
 		if len(moves) == 225:
 			break
-		move = input_position(turn, state) if turn==PLAYER1 or pvp else get_pc_move(state, round_number, moves)
-		make_move(state, move, turn)
-		moves.append(move)
+		if (turn == PLAYER2) and (len(moves) == 0):
+			make_move(state, [7,7], turn)
+		else:
+			move = input_position(turn, state) if turn==PLAYER1 or pvp else get_pc_move(state, round_number, moves)
+			make_move(state, move, turn)
+			moves.append(move)
 		round_number += 1
 		winner = exists_winner(state, moves)
 		turn = PLAYER2 if turn==PLAYER1 else PLAYER1
@@ -287,6 +290,19 @@ def print_menu():
 			sys.exit(0)
 		else:
 			print("Invalid option")
+
+def get_initial_player(pvp):
+	if pvp:
+		return PLAYER1
+	else:
+		while(True):
+			user_input = raw_input("=== Insert 1 for HUMAN first, or 2 for COMPUTER first: ")
+			if user_input == "1":
+				return PLAYER1
+			elif user_input == "2":
+				return PLAYER2
+			print "Not a valid entry"
+
 
 def game_over(winner, pvp):
 	print "GAME OVER"
