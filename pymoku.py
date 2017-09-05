@@ -10,13 +10,14 @@ EMPTY = "[ ]"
 PLAYER1 = "[O]"
 PLAYER2 = "[X]"
 debug = False
-MAX_ROUNDS = 3
+MAX_ROUNDS = 2
 
 #^C handler
 def signal_handler(signal, frame):
 	print('\nSee you soon!')
 	sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
+
 
 # returns the inicial state of the game, with all the board empty
 def get_initial_state():
@@ -25,18 +26,11 @@ def get_initial_state():
 		state.append([EMPTY for j in range(15)])
 	return state
 
-# returns empty positions
-def get_available_positions(state):
-	available_positions = []
-	for pos_x, row in enumerate(state):
-		for pos_y, pos in enumerate(row):
-			if pos == EMPTY:
-				available_positions.append([pos_x,pos_y])
-	return available_positions
 
 # given a position (pos) [x,y] of the board, returns if its empty
 def is_position_available(state, pos):
 	return state[pos[0]][pos[1]] == EMPTY
+
 
 def get_positions_bounded(state, moves):
 	positions = []
@@ -52,6 +46,7 @@ def get_positions_bounded(state, moves):
 						positions.append([new_bound_x,new_bound_y])
 	return positions
 
+
 # user = PLAYER1 or PLAYER2
 def make_move(state, pos, user):
 	if is_position_available(state, pos):
@@ -59,40 +54,16 @@ def make_move(state, pos, user):
 		return True
 	return False
 
-def get_bounds(moves):
-	if len(moves) == 0:
-		return [5,9,5,9] # bounds on center
-	min_x = 15
-	min_y = 15
-	max_x = 0
-	max_y = 0
-	for move in moves:
-		if move[0] < min_x:
-			min_x = move[0]
-		if move[0] >  max_x:
-			max_x = move[0]
-		if move[1] < min_y:
-			min_y = move[1]
-		if move[1] > max_y:
-			max_y = move[1]
-
-	if min_x < 2:
-		min_x = 2
-	if max_x > 12:
-		max_x = 12
-	if min_y < 2:
-		min_y = 2
-	if max_y > 12:
-		max_y = 12
-	return [min_x - 2, max_x + 2, min_y - 2, max_y + 2]
 
 def get_vertical_from_position(state, pos):
 	a = np.array(state)
 	return a[:,pos[1]]
 
+
 def get_horizontal_from_position(state, pos):
 	a = np.array(state)
 	return a[pos[0],:]
+
 
 def get_sequences_from_positions(state, moves):
 	sequences = []
@@ -113,6 +84,7 @@ def get_sequences_from_positions(state, moves):
 				sequences.extend(sequence)
 
 	return sequences
+
 
 #returns sequences in an array
 def get_sequences_in_array(array):
@@ -145,6 +117,7 @@ def get_sequences_in_array(array):
 		sequences.append([tmp_seq[0], tmp_opening, len(tmp_seq)])
 	return sequences
 
+
 # returns an array of sequences
 def get_diagonal_sequences(state):
 	sequences = []
@@ -169,11 +142,13 @@ def get_sequence_score(length):
 	elif length == 5:
 		return 383056128
 
+
 def get_all_sequences(state, moves):
 	all_sequences = (get_sequences_from_positions(state,moves))
 	for sequence in get_diagonal_sequences(state):
 		all_sequences.append(sequence)
 	return all_sequences
+
 
 def exists_winner(state, moves):
 	all_sequences = get_all_sequences(state, moves)
@@ -182,6 +157,7 @@ def exists_winner(state, moves):
 			if sequence[2] == 5:
 				return sequence[0]
 	return EMPTY
+
 
 def get_heuristic(state, player, round_number, moves):
 	all_sequences = get_all_sequences(state, moves)
@@ -196,8 +172,10 @@ def get_heuristic(state, player, round_number, moves):
 				score = score + get_sequence_score(5) if sequence[0] == PLAYER2 else score - get_sequence_score(5)
 	return (score*255)/round_number
 
+
 def unmake_move(state, move):
 	state[move[0]][move[1]] = EMPTY
+
 
 def alpha_beta(player, state, alpha, beta, rounds, round_number, moves):
 	possible_moves = get_positions_bounded(state, moves)
@@ -226,9 +204,11 @@ def alpha_beta(player, state, alpha, beta, rounds, round_number, moves):
 				return [alpha if player==PLAYER2 else beta, bestMove]
 		return [alpha if player==PLAYER2 else beta, bestMove]
 
+
 #returns best move using minimax algorithm
 def get_pc_move(state, round_number, moves):
 	return alpha_beta(PLAYER2, state,(-sys.maxsize-1), sys.maxsize, 0, round_number, moves)[1]
+
 
 def start_game(pvp):
 	round_number = 1
@@ -254,6 +234,7 @@ def start_game(pvp):
 		print_state(state)
 	game_over(winner, pvp)
 
+
 def print_header():
 	if debug:
 		print(" === === === === === ===  DEBUG === === === === === === === ===")
@@ -262,6 +243,7 @@ def print_header():
 	print(" === === === === === ===  === === === === === === === === ===")
 	print(" === === === === === ===  PYMOKU  === === === === === === ===")
 	print(" === === === === === ===  === === === === === === === === ===")
+
 
 def print_menu():
 	if debug:
@@ -290,6 +272,7 @@ def print_menu():
 			sys.exit(0)
 		else:
 			print("Invalid option")
+
 
 def get_initial_player(pvp):
 	if pvp:
