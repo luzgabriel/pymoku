@@ -170,7 +170,7 @@ def get_heuristic(state, player, round_number, moves):
 					break;
 			if sequence[2] >= 5:
 				score = score + get_sequence_score(5) if sequence[0] == PLAYER2 else score - get_sequence_score(5)
-	return (score*255)/round_number
+	return (score*225)/round_number
 
 
 def unmake_move(state, move):
