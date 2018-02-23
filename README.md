@@ -8,11 +8,11 @@ The AI was built using Minimax with Alpha-beta pruning
 </p>
 
 <p align="center">
-<img alt="title image" src="resources/menu.png"/>
+<img alt="Menu image" src="resources/menu.png"/>
 </p>
 
 <p align="center">
-<img alt="title image" src="resources/playing.png"/>
+<img alt="Gameplay Image" src="resources/playing.png"/>
 </p>
 
 ---
@@ -20,14 +20,13 @@ The AI was built using Minimax with Alpha-beta pruning
 * [Demo](#demo)  
 * [Installation](#installation)  
 * [Gameplay](#gameplay)  
-* [FAQ](#faq)  
 * [Contributing](#contributing)  
 * [License](#license) 
 
 ## Demo
 
 <p align="center">
-<img alt="title image" src="resources/gameplay.svg"/>
+<img alt="Gameplay demo" src="resources/gameplay.svg"/>
 </p>
 
 ## Installation
@@ -40,7 +39,9 @@ Pymoku is available on [PyPI](https://pypi.python.org/pypi/pymoku/) and can be i
 $ pip3 install pymoku
 ```
 
-##Gameplay
+## Gameplay
+
+In every round a player must choose an empty space to put his piece on. The winner is the first player to form an unbroken chain of five stones horizontally, vertically, or diagonally.
 
 ## Contributing
 
