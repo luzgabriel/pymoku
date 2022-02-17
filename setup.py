@@ -2,10 +2,10 @@
 
 from setuptools import setup
 
-from pymoku import __version__
+from pymokugame import __version__
 
 setup(
-    name='pymoku',
+    name='pymokugame',
     version = __version__,
     python_requires='>=3',
     description='Pymoku a gomoku game!',
@@ -13,10 +13,10 @@ setup(
     author_email='me@gabrielluz.com, gabriel.langer94@gmail.com',
     url='https://github.com/luzgabriel/pymoku',
     install_requires=['numpy'],
-    packages=['pymoku'],
+    packages=['pymokugame'],
     entry_points = {
         'console_scripts': [
-            'pymoku=pymoku.pymoku:main',
+            'pymokugame=pymokugame.pymokugame:main',
         ],
     }
 )
